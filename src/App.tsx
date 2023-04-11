@@ -10,6 +10,8 @@ import {
   TableBody,
   Paper,
   Button,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 import { Scrypt, ScryptProvider } from "scrypt-ts";
@@ -19,6 +21,9 @@ import { Voting } from "./contracts/voting";
 function App() {
   const [votingContract, setContract] = useState<Voting>();
   const signerRef = useRef<SensiletSigner>();
+  const [open, setOpen] = React.useState(false);
+  const [error, setError] = React.useState("");
+
   useEffect(() => {
     console.log("useEffect");
 
@@ -43,6 +48,17 @@ function App() {
       });
   }, []);
 
+  const handleClose = (
+    event: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpen(false);
+  };
+
   let rows: Array<any> = [];
 
   async function voting(e: any) {
@@ -50,15 +66,13 @@ function App() {
 
     const signer = signerRef.current as SensiletSigner;
 
-
     if (votingContract && signer) {
-
-      const { isAuthenticated, error } = await signer.requestAuth()
+      const { isAuthenticated, error } = await signer.requestAuth();
       if (!isAuthenticated) {
-        throw new Error(error)
+        throw new Error(error);
       }
 
-      await votingContract.connect(signer)
+      await votingContract.connect(signer);
 
       // create the next instance from the current
       const nextInstance = votingContract.next();
@@ -69,15 +83,22 @@ function App() {
       nextInstance.increaseVotesReceived(candidateName);
 
       // call the method of current instance to apply the updates on chain
-      votingContract.methods.vote(candidateName, {
-        next: {
-          instance: nextInstance,
-          balance: votingContract.balance
-        },
-      }).then(result => {
-        console.log(`Voting call tx: ${result.tx.id}`)
-        setContract(nextInstance)
-      })
+      votingContract.methods
+        .vote(candidateName, {
+          next: {
+            instance: nextInstance,
+            balance: votingContract.balance,
+          },
+        })
+        .then((result) => {
+          console.log(`Voting call tx: ${result.tx.id}`);
+          setContract(nextInstance);
+        })
+        .catch((e) => {
+          setError(e.message);
+          setOpen(true);
+          console.error("call error: ", e.message);
+        });
     }
   }
 
@@ -117,6 +138,9 @@ function App() {
           <TableBody>{rows}</TableBody>
         </Table>
       </TableContainer>
+      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+        <Alert severity="error">{error}</Alert>
+      </Snackbar>
     </div>
   );
 }
