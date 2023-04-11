@@ -12,6 +12,7 @@ import {
   Button,
   Snackbar,
   Alert,
+  Link
 } from "@mui/material";
 
 import { Scrypt, ScryptProvider } from "scrypt-ts";
@@ -23,6 +24,7 @@ function App() {
   const signerRef = useRef<SensiletSigner>();
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState("");
+  const [txId, setTx] = React.useState("");
 
   useEffect(() => {
     console.log("useEffect");
@@ -93,10 +95,12 @@ function App() {
         .then((result) => {
           console.log(`Voting call tx: ${result.tx.id}`);
           setContract(nextInstance);
+          setTx(result.tx.id)
         })
         .catch((e) => {
           setError(e.message);
           setOpen(true);
+          setTx('')
           console.error("call error: ", e.message);
         });
     }
@@ -140,6 +144,10 @@ function App() {
       </TableContainer>
       <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
         <Alert severity="error">{error}</Alert>
+      </Snackbar>
+
+      <Snackbar open={txId !== ''}>
+        <Alert severity="success"> <Link href={`https://test.whatsonchain.com/tx/${txId}`} target="_blank" rel="noreferrer">{`call tx: ${txId}`}</Link></Alert>
       </Snackbar>
     </div>
   );
