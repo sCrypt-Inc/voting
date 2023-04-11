@@ -21,6 +21,8 @@ function App() {
   const signerRef = useRef<SensiletSigner>();
   useEffect(() => {
     console.log("useEffect");
+
+    // `npm run deploycontract` to get deployment transaction id
     const contract_id = {
       /** The deployment transaction id */
       txId: "1556b591bffdcf1e50edbfa6c93ff9a1f6ce06550865a0fbb6228450af95e376",
