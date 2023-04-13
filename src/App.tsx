@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import logo from "./logo.svg";
 import "./App.css";
 import {
   TableContainer,
@@ -12,42 +11,61 @@ import {
   Button,
   Snackbar,
   Alert,
-  Link
+  Link,
 } from "@mui/material";
 
-import { Scrypt, ScryptProvider } from "scrypt-ts";
-import { SensiletSigner } from "scrypt-ts/dist/bsv/signers/sensilet-signer";
+import { Scrypt, ScryptProvider, SensiletSigner, ContractEvent, ContractEventType } from "scrypt-ts";
+
 import { Voting } from "./contracts/voting";
+
+// `npm run deploycontract` to get deployment transaction id
+const contract_id = {
+  /** The deployment transaction id */
+  txId: "1556b591bffdcf1e50edbfa6c93ff9a1f6ce06550865a0fbb6228450af95e376",
+  /** The output index */
+  outputIndex: 0,
+};
 
 function App() {
   const [votingContract, setContract] = useState<Voting>();
   const signerRef = useRef<SensiletSigner>();
-  const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState("");
   const [txId, setTx] = React.useState("");
 
+  async function fetchContract() {
+
+    try {
+      const instance = await Scrypt.contractApi.getLatestInstance(
+        Voting,
+        contract_id
+      );
+      setContract(instance);
+    } catch (error: any) {
+      console.error("fetchContract error: ", error);
+      setError(error.message)
+    }
+  }
+
   useEffect(() => {
-    console.log("useEffect");
-
-    // `npm run deploycontract` to get deployment transaction id
-    const contract_id = {
-      /** The deployment transaction id */
-      txId: "1556b591bffdcf1e50edbfa6c93ff9a1f6ce06550865a0fbb6228450af95e376",
-      /** The output index */
-      outputIndex: 0,
-    };
-
     const provider = new ScryptProvider();
     const signer = new SensiletSigner(provider);
 
     signerRef.current = signer;
 
-    Scrypt.contractApi
-      .getLatestInstance(Voting, contract_id)
-      .then((instance) => {
-        setContract(instance);
-        console.log("instance", instance);
-      });
+    fetchContract();
+
+    const subscription = Scrypt.contractApi.subscribe({
+      clazz: Voting,
+      id: contract_id,
+    }, (event: ContractEvent<Voting>) => {
+      if(event.type === ContractEventType.Called) {
+        setContract(event.newInstance);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleClose = (
@@ -58,13 +76,12 @@ function App() {
       return;
     }
 
-    setOpen(false);
+    setError('');
   };
 
   let rows: Array<any> = [];
 
   async function voting(e: any) {
-    console.log("voting", e.target.name);
 
     const signer = signerRef.current as SensiletSigner;
 
@@ -95,13 +112,13 @@ function App() {
         .then((result) => {
           console.log(`Voting call tx: ${result.tx.id}`);
           setContract(nextInstance);
-          setTx(result.tx.id)
+          setTx(result.tx.id);
         })
         .catch((e) => {
           setError(e.message);
-          setOpen(true);
-          setTx('')
-          console.error("call error: ", e.message);
+          setTx("");
+          fetchContract();
+          console.error("call error: ", e);
         });
     }
   }
@@ -137,17 +154,25 @@ function App() {
             <TableRow>
               <TableCell>Candidate</TableCell>
               <TableCell>Votes</TableCell>
+              <TableCell>Voting</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>{rows}</TableBody>
         </Table>
       </TableContainer>
-      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+      <Snackbar open={error !== ""} autoHideDuration={6000} onClose={handleClose}>
         <Alert severity="error">{error}</Alert>
       </Snackbar>
 
-      <Snackbar open={txId !== ''}>
-        <Alert severity="success"> <Link href={`https://test.whatsonchain.com/tx/${txId}`} target="_blank" rel="noreferrer">{`call tx: ${txId}`}</Link></Alert>
+      <Snackbar open={txId !== ""} autoHideDuration={6000}>
+        <Alert severity="success">
+          {" "}
+          <Link
+            href={`https://test.whatsonchain.com/tx/${txId}`}
+            target="_blank"
+            rel="noreferrer"
+          >{`call tx: ${txId}`}</Link>
+        </Alert>
       </Snackbar>
     </div>
   );
