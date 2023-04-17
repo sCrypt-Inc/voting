@@ -56,10 +56,11 @@ function App() {
 
     const subscription = Scrypt.contractApi.subscribe({
       clazz: Voting,
-      id: contract_id,
+      id: contract_id
     }, (event: ContractEvent<Voting>) => {
       if(event.type === ContractEventType.Called) {
-        setContract(event.newInstance);
+        setContract(event.nexts[0]);
+        console.log('calldata', event.calldata)
       }
     });
 

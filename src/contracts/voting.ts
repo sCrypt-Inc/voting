@@ -60,7 +60,7 @@ export class Voting extends SmartContract {
     @method()
     increaseVotesReceived(candidate: CandidateName): void {
         for (let i = 0; i < N; i++) {
-            if (this.candidates[i].name == candidate) {
+            if (this.candidates[i].name === candidate) {
                 this.candidates[i].votesReceived++
             }
         }
