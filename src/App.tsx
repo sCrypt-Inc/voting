@@ -14,7 +14,7 @@ import {
   Link,
 } from "@mui/material";
 
-import { Scrypt, ScryptProvider, SensiletSigner, ContractEvent, ContractEventType } from "scrypt-ts";
+import { Scrypt, ScryptProvider, SensiletSigner, ContractCalledEvent } from "scrypt-ts";
 
 import { Voting } from "./contracts/voting";
 
@@ -31,6 +31,7 @@ function App() {
   const signerRef = useRef<SensiletSigner>();
   const [error, setError] = React.useState("");
   const [txId, setTx] = React.useState("");
+  const [calledMethodName, setCalledMethodName] = React.useState<string>("vote");
 
   async function fetchContract() {
 
@@ -57,11 +58,9 @@ function App() {
     const subscription = Scrypt.contractApi.subscribe({
       clazz: Voting,
       id: contract_id
-    }, (event: ContractEvent<Voting>) => {
-      if(event.type === ContractEventType.Called) {
-        setContract(event.nexts[0]);
-        console.log('calldata', event.calldata)
-      }
+    }, (event: ContractCalledEvent<Voting>) => {
+      setContract(event.nexts[0]);
+      setCalledMethodName(event.methodName)
     });
 
     return () => {
@@ -78,6 +77,17 @@ function App() {
     }
 
     setError('');
+  };
+
+  const handleSuccessClose = (
+    event: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setTx('');
   };
 
   let rows: Array<any> = [];
@@ -165,14 +175,14 @@ function App() {
         <Alert severity="error">{error}</Alert>
       </Snackbar>
 
-      <Snackbar open={txId !== ""} autoHideDuration={6000}>
+      <Snackbar open={txId !== ""} autoHideDuration={6000} onClose={handleSuccessClose}>
         <Alert severity="success">
           {" "}
           <Link
             href={`https://test.whatsonchain.com/tx/${txId}`}
             target="_blank"
             rel="noreferrer"
-          >{`call tx: ${txId}`}</Link>
+          >{`contract's method "${calledMethodName}" called,  tx: ${txId}`}</Link>
         </Alert>
       </Snackbar>
     </div>
