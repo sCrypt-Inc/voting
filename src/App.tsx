@@ -145,7 +145,7 @@ function App() {
 
           <TableCell>
             <Button variant="text" onClick={voting} name={candidate.name}>
-              Voting
+              👍
             </Button>
           </TableCell>
         </TableRow>
@@ -156,8 +156,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h2>Who is real satoshi?</h2>
-        <p>Voting on Bitcoin</p>
+        <h2>Who is Satoshi?</h2>
       </header>
       <TableContainer component={Paper} variant="outlined">
         <Table aria-label="demo table">
