@@ -13,7 +13,9 @@ const privateKey = bsv.PrivateKey.fromWIF(process.env.PRIVATE_KEY || '')
 
 // Prepare signer. 
 // See https://scrypt.io/docs/how-to-deploy-and-call-a-contract/#prepare-a-signer-and-provider
-const signer = new TestWallet(privateKey, new DefaultProvider())
+const signer = new TestWallet(privateKey, new DefaultProvider({
+    network: bsv.Networks.testnet
+}))
 
 async function main() {
     await Voting.compile()

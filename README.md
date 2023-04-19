@@ -1,6 +1,7 @@
 ### Deploy
 
 ```
+npm run compile
 npm run deploycontract
 ```
 
