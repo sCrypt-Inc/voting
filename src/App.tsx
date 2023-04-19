@@ -14,7 +14,7 @@ import {
   Link,
 } from "@mui/material";
 
-import { Scrypt, ScryptProvider, SensiletSigner, ContractCalledEvent } from "scrypt-ts";
+import { Scrypt, ScryptProvider, SensiletSigner, ContractCalledEvent, ByteString } from "scrypt-ts";
 
 import { Voting } from "./contracts/voting";
 
@@ -26,12 +26,21 @@ const contract_id = {
   outputIndex: 0,
 };
 
+function byteString2utf8(b: ByteString){
+  return Buffer.from(b, "hex").toString("utf8")
+}
+
 function App() {
   const [votingContract, setContract] = useState<Voting>();
   const signerRef = useRef<SensiletSigner>();
   const [error, setError] = React.useState("");
-  const [txId, setTx] = React.useState("");
-  const [calledMethodName, setCalledMethodName] = React.useState<string>("vote");
+  const [success, setSuccess] = React.useState<{
+    txId: string,
+    candidate: string
+  } >({
+    txId: '',
+    candidate: ''
+  });
 
   async function fetchContract() {
 
@@ -59,8 +68,12 @@ function App() {
       clazz: Voting,
       id: contract_id
     }, (event: ContractCalledEvent<Voting>) => {
+
+      setSuccess({
+        txId: event.tx.id,
+        candidate: byteString2utf8(event.args[0] as ByteString)
+      });
       setContract(event.nexts[0]);
-      setCalledMethodName(event.methodName)
     });
 
     return () => {
@@ -86,8 +99,10 @@ function App() {
     if (reason === "clickaway") {
       return;
     }
-
-    setTx('');
+    setSuccess({
+      txId: '',
+      candidate: ''
+    })
   };
 
   let rows: Array<any> = [];
@@ -122,12 +137,9 @@ function App() {
         })
         .then((result) => {
           console.log(`Voting call tx: ${result.tx.id}`);
-          setContract(nextInstance);
-          setTx(result.tx.id);
         })
         .catch((e) => {
           setError(e.message);
-          setTx("");
           fetchContract();
           console.error("call error: ", e);
         });
@@ -137,9 +149,9 @@ function App() {
   if (votingContract) {
     rows = votingContract.candidates.map((candidate) => {
       return (
-        <TableRow>
+        <TableRow hover >
           <TableCell>
-            {Buffer.from(candidate.name, "hex").toString("utf8")}
+            {byteString2utf8(candidate.name)}
           </TableCell>
           <TableCell>{candidate.votesReceived.toString()}</TableCell>
 
@@ -152,7 +164,7 @@ function App() {
       );
     });
   }
-
+ 
   return (
     <div className="App">
       <header className="App-header">
@@ -174,14 +186,16 @@ function App() {
         <Alert severity="error">{error}</Alert>
       </Snackbar>
 
-      <Snackbar open={txId !== ""} autoHideDuration={6000} onClose={handleSuccessClose}>
+
+
+      <Snackbar open={success.candidate !== '' && success.txId !== ''} autoHideDuration={6000} onClose={handleSuccessClose}>
         <Alert severity="success">
           {" "}
           <Link
-            href={`https://test.whatsonchain.com/tx/${txId}`}
+            href={`https://test.whatsonchain.com/tx/${success.txId}`}
             target="_blank"
             rel="noreferrer"
-          >{`contract's method "${calledMethodName}" called,  tx: ${txId}`}</Link>
+          >{`"${success.candidate}" got one vote,  tx: ${success.txId}`}</Link>
         </Alert>
       </Snackbar>
     </div>
