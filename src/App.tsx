@@ -71,7 +71,7 @@ function App() {
 
       setSuccess({
         txId: event.tx.id,
-        candidate: byteString2utf8(event.args[0] as ByteString)
+        candidate: event.args[0] as ByteString
       });
       setContract(event.nexts[0]);
     });
@@ -109,6 +109,7 @@ function App() {
 
   async function voting(e: any) {
 
+    handleSuccessClose(e)
     const signer = signerRef.current as SensiletSigner;
 
     if (votingContract && signer) {
@@ -149,7 +150,7 @@ function App() {
   if (votingContract) {
     rows = votingContract.candidates.map((candidate) => {
       return (
-        <TableRow hover >
+        <TableRow hover selected={success.candidate === candidate.name}>
           <TableCell>
             {byteString2utf8(candidate.name)}
           </TableCell>
@@ -195,7 +196,7 @@ function App() {
             href={`https://test.whatsonchain.com/tx/${success.txId}`}
             target="_blank"
             rel="noreferrer"
-          >{`"${success.candidate}" got one vote,  tx: ${success.txId}`}</Link>
+          >{`"${byteString2utf8(success.candidate)}" got one vote,  tx: ${success.txId}`}</Link>
         </Alert>
       </Snackbar>
     </div>
