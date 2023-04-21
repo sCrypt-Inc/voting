@@ -155,19 +155,18 @@ function App() {
   }
 
   if (votingContract) {
-    rows = votingContract.candidates.map((candidate) => {
+    rows = votingContract.candidates.map((candidate, index) => {
       return (
         <TableRow hover selected={success.candidate === candidate.name}>
           <TableCell>
             {byteString2utf8(candidate.name)}
-
             <Box
               sx={{
                 height: 200,
               }}
               component="img"
-              alt="The house from the offer."
-              src={`./voting/${byteString2utf8(candidate.name)}.png`}
+              alt={byteString2utf8(candidate.name)}
+              src={`./voting/${index === 0 ? 'iphone' : 'android'}.png`}
             />
           </TableCell>
           <TableCell>{candidate.votesReceived.toString()}</TableCell>
