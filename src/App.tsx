@@ -12,22 +12,29 @@ import {
   Snackbar,
   Alert,
   Link,
+  Box,
 } from "@mui/material";
 
-import { Scrypt, ScryptProvider, SensiletSigner, ContractCalledEvent, ByteString } from "scrypt-ts";
+import {
+  Scrypt,
+  ScryptProvider,
+  SensiletSigner,
+  ContractCalledEvent,
+  ByteString,
+} from "scrypt-ts";
 
 import { Voting } from "./contracts/voting";
 
 // `npm run deploycontract` to get deployment transaction id
 const contract_id = {
   /** The deployment transaction id */
-  txId: "1556b591bffdcf1e50edbfa6c93ff9a1f6ce06550865a0fbb6228450af95e376",
+  txId: "65d80537b63bc7fe12280826cdb9fa4424add5c08def0340ddc8444908c03d9e",
   /** The output index */
   outputIndex: 0,
 };
 
-function byteString2utf8(b: ByteString){
-  return Buffer.from(b, "hex").toString("utf8")
+function byteString2utf8(b: ByteString) {
+  return Buffer.from(b, "hex").toString("utf8");
 }
 
 function App() {
@@ -35,15 +42,14 @@ function App() {
   const signerRef = useRef<SensiletSigner>();
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState<{
-    txId: string,
-    candidate: string
-  } >({
-    txId: '',
-    candidate: ''
+    txId: string;
+    candidate: string;
+  }>({
+    txId: "",
+    candidate: "",
   });
 
   async function fetchContract() {
-
     try {
       const instance = await Scrypt.contractApi.getLatestInstance(
         Voting,
@@ -52,7 +58,7 @@ function App() {
       setContract(instance);
     } catch (error: any) {
       console.error("fetchContract error: ", error);
-      setError(error.message)
+      setError(error.message);
     }
   }
 
@@ -64,17 +70,19 @@ function App() {
 
     fetchContract();
 
-    const subscription = Scrypt.contractApi.subscribe({
-      clazz: Voting,
-      id: contract_id
-    }, (event: ContractCalledEvent<Voting>) => {
-
-      setSuccess({
-        txId: event.tx.id,
-        candidate: event.args[0] as ByteString
-      });
-      setContract(event.nexts[0]);
-    });
+    const subscription = Scrypt.contractApi.subscribe(
+      {
+        clazz: Voting,
+        id: contract_id,
+      },
+      (event: ContractCalledEvent<Voting>) => {
+        setSuccess({
+          txId: event.tx.id,
+          candidate: event.args[0] as ByteString,
+        });
+        setContract(event.nexts[0]);
+      }
+    );
 
     return () => {
       subscription.unsubscribe();
@@ -89,7 +97,7 @@ function App() {
       return;
     }
 
-    setError('');
+    setError("");
   };
 
   const handleSuccessClose = (
@@ -100,16 +108,15 @@ function App() {
       return;
     }
     setSuccess({
-      txId: '',
-      candidate: ''
-    })
+      txId: "",
+      candidate: "",
+    });
   };
 
   let rows: Array<any> = [];
 
   async function voting(e: any) {
-
-    handleSuccessClose(e)
+    handleSuccessClose(e);
     const signer = signerRef.current as SensiletSigner;
 
     if (votingContract && signer) {
@@ -153,6 +160,15 @@ function App() {
         <TableRow hover selected={success.candidate === candidate.name}>
           <TableCell>
             {byteString2utf8(candidate.name)}
+
+            <Box
+              sx={{
+                height: 200,
+              }}
+              component="img"
+              alt="The house from the offer."
+              src={`./voting/${byteString2utf8(candidate.name)}.png`}
+            />
           </TableCell>
           <TableCell>{candidate.votesReceived.toString()}</TableCell>
 
@@ -165,11 +181,11 @@ function App() {
       );
     });
   }
- 
+
   return (
     <div className="App">
       <header className="App-header">
-        <h2>Who is Satoshi?</h2>
+        <h2>What's your favorite phone?</h2>
       </header>
       <TableContainer component={Paper} variant="outlined">
         <Table aria-label="demo table">
@@ -183,20 +199,28 @@ function App() {
           <TableBody>{rows}</TableBody>
         </Table>
       </TableContainer>
-      <Snackbar open={error !== ""} autoHideDuration={6000} onClose={handleClose}>
+      <Snackbar
+        open={error !== ""}
+        autoHideDuration={6000}
+        onClose={handleClose}
+      >
         <Alert severity="error">{error}</Alert>
       </Snackbar>
 
-
-
-      <Snackbar open={success.candidate !== '' && success.txId !== ''} autoHideDuration={6000} onClose={handleSuccessClose}>
+      <Snackbar
+        open={success.candidate !== "" && success.txId !== ""}
+        autoHideDuration={6000}
+        onClose={handleSuccessClose}
+      >
         <Alert severity="success">
           {" "}
           <Link
             href={`https://test.whatsonchain.com/tx/${success.txId}`}
             target="_blank"
             rel="noreferrer"
-          >{`"${byteString2utf8(success.candidate)}" got one vote,  tx: ${success.txId}`}</Link>
+          >{`"${byteString2utf8(success.candidate)}" got one vote,  tx: ${
+            success.txId
+          }`}</Link>
         </Alert>
       </Snackbar>
     </div>

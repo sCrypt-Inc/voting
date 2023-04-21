@@ -1,4 +1,4 @@
-import { CandidateName, Voting, N } from './src/contracts/voting'
+import { Name, Voting, N } from './src/contracts/voting'
 import { bsv, TestWallet, DefaultProvider, toByteString, FixedArray } from 'scrypt-ts'
 
 import * as dotenv from 'dotenv'
@@ -23,17 +23,9 @@ async function main() {
     // TODO: Adjust the amount of satoshis locked in the smart contract:
     const amount = 1
 
-    const candidateNames: FixedArray<CandidateName, typeof N> = [
-        toByteString('Craig Wright', true),
-        toByteString('Elon Musk', true),
-        toByteString('Donald Trump', true),
-        toByteString('Lionel Messi', true),
-        toByteString('Bill Gates', true),
-        toByteString('xhliu', true),
-        toByteString('Zuckerberg', true),
-        toByteString('Vitalik Buterin', true),
-        toByteString('孙悟空', true),
-        toByteString('Steve Jobs', true),
+    const candidateNames: FixedArray<Name, typeof N> = [
+        toByteString('iPhone', true),
+        toByteString('Android', true)
     ]
 
 

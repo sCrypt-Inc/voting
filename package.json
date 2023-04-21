@@ -29,8 +29,8 @@
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
-    "compile": "npx scrypt-cli@latest compile",
-    "deploycontract": "npx ts-node ./deploy.ts"
+    "build:contract": "npx scrypt-cli@latest compile",
+    "deploy:contract": "npx ts-node ./deploy.ts"
   },
   "eslintConfig": {
     "extends": [
