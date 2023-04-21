@@ -132,7 +132,7 @@ function App() {
               }}
               component="img"
               alt={byteString2utf8(candidate.name)}
-              src={`./voting/${index === 0 ? 'iphone' : 'android'}.png`}
+              src={`${process.env.PUBLIC_URL}/${index === 0 ? 'iphone' : 'android'}.png`}
             />
           </TableCell>
           <TableCell>{candidate.votesReceived.toString()}</TableCell>
