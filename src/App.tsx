@@ -62,14 +62,14 @@ function App() {
     };
   }, []);
 
-  const handleClose = (event: React.SyntheticEvent | Event, reason?: string) => {
+  const handleClose = (_event: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === "clickaway") {
       return;
     }
     setError("");
   };
 
-  const handleSuccessClose = (event: React.SyntheticEvent | Event, reason?: string) => {
+  const handleSuccessClose = (_event: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === "clickaway") {
       return;
     }

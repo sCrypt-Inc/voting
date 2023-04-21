@@ -20,14 +20,10 @@ const signer = new TestWallet(privateKey, new DefaultProvider({
 async function main() {
     await Voting.compile()
 
-    // TODO: Adjust the amount of satoshis locked in the smart contract:
-    const amount = 1
-
     const candidateNames: FixedArray<Name, typeof N> = [
         toByteString('iPhone', true),
         toByteString('Android', true)
     ]
-
 
     const instance = new Voting(
         candidateNames
@@ -37,6 +33,7 @@ async function main() {
     await instance.connect(signer)
 
     // Contract deployment.
+    const amount = 1
     const deployTx = await instance.deploy(amount)
     console.log('Voting contract deployed: ', deployTx.id)
 }
