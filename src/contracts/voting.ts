@@ -1,14 +1,4 @@
-import {
-    assert,
-    ByteString,
-    hash256,
-    method,
-    prop,
-    SmartContract,
-    FixedArray,
-    fill,
-    toByteString,
-} from 'scrypt-ts'
+import { assert, ByteString, hash256, method, prop, SmartContract, FixedArray, fill, toByteString } from 'scrypt-ts'
 
 export type Name = ByteString
 
@@ -16,6 +6,7 @@ export type Candidate = {
     name: Name
     votesReceived: bigint
 }
+
 export const N = 2
 
 export type Candidates = FixedArray<Candidate, typeof N>
@@ -24,19 +15,17 @@ export class Voting extends SmartContract {
     @prop(true)
     candidates: Candidates
 
-    constructor(candidateNames: FixedArray<Name, typeof N>) {
+    constructor(names: FixedArray<Name, typeof N>) {
         super(...arguments)
-        this.candidates = fill(
-            {
-                name: toByteString(''),
-                votesReceived: 0n,
-            },
-            N
-        )
-
+        // initialize fixed array
+        this.candidates = fill({
+            name: toByteString(''),
+            votesReceived: 0n,
+        }, N)
+        // set names and set votes they received to 0
         for (let i = 0; i < N; i++) {
             this.candidates[i] = {
-                name: candidateNames[i],
+                name: names[i],
                 votesReceived: 0n,
             }
         }
@@ -44,11 +33,11 @@ export class Voting extends SmartContract {
 
     /**
      * vote for a candidate
-     * @param candidate candidate's name
+     * @param name candidate's name
      */
     @method()
-    public vote(candidate: Name) {
-        this.increaseVotesReceived(candidate)
+    public vote(name: Name) {
+        this.increaseVotesReceived(name)
         // output containing the latest state and the same balance
         let outputs: ByteString = this.buildStateOutput(this.ctx.utxo.value)
         if (this.changeAmount > 0n) {
@@ -58,9 +47,9 @@ export class Voting extends SmartContract {
     }
 
     @method()
-    increaseVotesReceived(candidate: Name): void {
+    increaseVotesReceived(name: Name): void {
         for (let i = 0; i < N; i++) {
-            if (this.candidates[i].name === candidate) {
+            if (this.candidates[i].name === name) {
                 this.candidates[i].votesReceived++
             }
         }
