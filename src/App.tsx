@@ -1,7 +1,26 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./App.css";
-import { TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Paper, Button, Snackbar, Alert, Link, Box } from "@mui/material";
-import { Scrypt, ScryptProvider, SensiletSigner, ContractCalledEvent, ByteString } from "scrypt-ts";
+import {
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Paper,
+  Button,
+  Snackbar,
+  Alert,
+  Link,
+  Box,
+} from "@mui/material";
+import {
+  Scrypt,
+  ScryptProvider,
+  SensiletSigner,
+  ContractCalledEvent,
+  ByteString,
+} from "scrypt-ts";
 import { Voting } from "./contracts/voting";
 
 // `npm run deploycontract` to get deployment transaction id
@@ -20,7 +39,10 @@ function App() {
   const [votingContract, setContract] = useState<Voting>();
   const signerRef = useRef<SensiletSigner>();
   const [error, setError] = React.useState("");
-  const [success, setSuccess] = React.useState<{ txId: string; candidate: string; }>({
+  const [success, setSuccess] = React.useState<{
+    txId: string;
+    candidate: string;
+  }>({
     txId: "",
     candidate: "",
   });
@@ -46,30 +68,39 @@ function App() {
 
     fetchContract();
 
-    const subscription = Scrypt.contractApi.subscribe({
-      clazz: Voting,
-      id: contract_id,
-    }, (event: ContractCalledEvent<Voting>) => {
-      setSuccess({
-        txId: event.tx.id,
-        candidate: event.args[0] as ByteString,
-      });
-      setContract(event.nexts[0]);
-    });
+    const subscription = Scrypt.contractApi.subscribe(
+      {
+        clazz: Voting,
+        id: contract_id,
+      },
+      (event: ContractCalledEvent<Voting>) => {
+        setSuccess({
+          txId: event.tx.id,
+          candidate: event.args[0] as ByteString,
+        });
+        setContract(event.nexts[0]);
+      }
+    );
 
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
-  const handleClose = (_event: React.SyntheticEvent | Event, reason?: string) => {
+  const handleClose = (
+    _event: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
     if (reason === "clickaway") {
       return;
     }
     setError("");
   };
 
-  const handleSuccessClose = (_event: React.SyntheticEvent | Event, reason?: string) => {
+  const handleSuccessClose = (
+    _event: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
     if (reason === "clickaway") {
       return;
     }
@@ -125,15 +156,19 @@ function App() {
       return (
         <TableRow hover selected={success.candidate === candidate.name}>
           <TableCell>
-            {byteString2utf8(candidate.name)}
-            <Box
-              sx={{
-                height: 200,
-              }}
-              component="img"
-              alt={byteString2utf8(candidate.name)}
-              src={`${process.env.PUBLIC_URL}/${index === 0 ? 'iphone' : 'android'}.png`}
-            />
+            <Box display="flex" alignItems="center">
+              <Box paddingRight={2} sx={{ fontWeight: 'medium' }}> {byteString2utf8(candidate.name)}</Box>
+              <Box
+                sx={{
+                  height: 200,
+                }}
+                component="img"
+                alt={byteString2utf8(candidate.name)}
+                src={`${process.env.PUBLIC_URL}/${
+                  index === 0 ? "iphone" : "android"
+                }.png`}
+              />
+            </Box>
           </TableCell>
           <TableCell>{candidate.votesReceived.toString()}</TableCell>
 
@@ -156,7 +191,7 @@ function App() {
         <Table aria-label="demo table">
           <TableHead>
             <TableRow>
-              <TableCell>Candidate</TableCell>
+              <TableCell>Phone</TableCell>
               <TableCell>Votes</TableCell>
               <TableCell>Voting</TableCell>
             </TableRow>
@@ -164,15 +199,29 @@ function App() {
           <TableBody>{rows}</TableBody>
         </Table>
       </TableContainer>
-      <Snackbar open={error !== ""} autoHideDuration={6000} onClose={handleClose}>
+      <Snackbar
+        open={error !== ""}
+        autoHideDuration={6000}
+        onClose={handleClose}
+      >
         <Alert severity="error">{error}</Alert>
       </Snackbar>
 
-      <Snackbar open={success.candidate !== "" && success.txId !== ""} autoHideDuration={6000} onClose={handleSuccessClose}>
+      <Snackbar
+        open={success.candidate !== "" && success.txId !== ""}
+        autoHideDuration={6000}
+        onClose={handleSuccessClose}
+      >
         <Alert severity="success">
           {" "}
-          <Link href={`https://test.whatsonchain.com/tx/${success.txId}`} target="_blank" rel="noreferrer">
-            {`"${byteString2utf8(success.candidate)}" got one vote,  tx: ${success.txId}`}
+          <Link
+            href={`https://test.whatsonchain.com/tx/${success.txId}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {`"${byteString2utf8(success.candidate)}" got one vote,  tx: ${
+              success.txId
+            }`}
           </Link>
         </Alert>
       </Snackbar>
