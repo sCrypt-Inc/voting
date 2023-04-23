@@ -12,7 +12,9 @@ import {
   Snackbar,
   Alert,
   Link,
+  Typography,
   Box,
+  Divider
 } from "@mui/material";
 import {
   Scrypt,
@@ -22,6 +24,7 @@ import {
   ByteString,
 } from "scrypt-ts";
 import { Voting } from "./contracts/voting";
+import Footer from "./Footer";
 
 // `npm run deploycontract` to get deployment transaction id
 const contract_id = {
@@ -110,8 +113,6 @@ function App() {
     });
   };
 
-  let rows: Array<any> = [];
-
   async function voting(e: any) {
     handleSuccessClose(e);
     const signer = signerRef.current as SensiletSigner;
@@ -151,54 +152,86 @@ function App() {
     }
   }
 
-  if (votingContract) {
-    rows = votingContract.candidates.map((candidate, index) => {
-      return (
-        <TableRow hover selected={success.candidate === candidate.name}>
-          <TableCell>
-            <Box display="flex" alignItems="center">
-              <Box paddingRight={2} sx={{ fontWeight: 'medium' }}> {byteString2utf8(candidate.name)}</Box>
-              <Box
-                sx={{
-                  height: 200,
-                }}
-                component="img"
-                alt={byteString2utf8(candidate.name)}
-                src={`${process.env.PUBLIC_URL}/${
-                  index === 0 ? "iphone" : "android"
-                }.png`}
-              />
-            </Box>
-          </TableCell>
-          <TableCell>{candidate.votesReceived.toString()}</TableCell>
-
-          <TableCell>
-            <Button variant="text" onClick={voting} name={candidate.name}>
-              👍
-            </Button>
-          </TableCell>
-        </TableRow>
-      );
-    });
-  }
-
   return (
     <div className="App">
       <header className="App-header">
         <h2>What's your favorite phone?</h2>
       </header>
-      <TableContainer component={Paper} variant="outlined">
-        <Table aria-label="demo table">
+      <TableContainer
+        component={Paper}
+        variant="outlined"
+        style={{ width: 1200, height: "80vh", margin: "auto" }}
+      >
+        <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Phone</TableCell>
-              <TableCell>Votes</TableCell>
-              <TableCell>Voting</TableCell>
+              <TableCell align="center">Iphone</TableCell>
+              <TableCell align="center">Android</TableCell>
             </TableRow>
           </TableHead>
-          <TableBody>{rows}</TableBody>
+          <TableBody>
+            <TableRow>
+              <TableCell align="center">
+                <Box>
+                  <Box
+                    sx={{
+                      height: 200,
+                    }}
+                    component="img"
+                    alt={"iphone"}
+                    src={`${process.env.PUBLIC_URL}/${"iphone"}.png`}
+                  />
+                </Box>
+              </TableCell>
+              <TableCell align="center">
+                <Box>
+                  <Box
+                    sx={{
+                      height: 200,
+                    }}
+                    component="img"
+                    alt={"android"}
+                    src={`${process.env.PUBLIC_URL}/${"android"}.png`}
+                  />
+                </Box>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell align="center">
+                <Box>
+                  <Typography variant={"h1"} >
+                    {votingContract?.candidates[0].votesReceived.toString()}
+                  </Typography>
+                  <Button
+                    variant="text"
+                    onClick={voting}
+                    name={votingContract?.candidates[0].name}
+                  >
+                    👍
+                  </Button>
+                </Box>
+              </TableCell>
+
+              <TableCell align="center">
+              <Divider orientation="vertical" flexItem />
+                <Box>
+                  <Typography variant={"h1"}>
+                    {votingContract?.candidates[1].votesReceived.toString()}
+                  </Typography>
+                  <Button
+                    variant="text"
+                    onClick={voting}
+                    name={votingContract?.candidates[1].name}
+                  >
+                    👍
+                  </Button>
+                </Box>
+              </TableCell>
+            </TableRow>
+          </TableBody>
         </Table>
       </TableContainer>
+      <Footer />
       <Snackbar
         open={error !== ""}
         autoHideDuration={6000}
