@@ -165,7 +165,7 @@ function App() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell align="center">Iphone</TableCell>
+              <TableCell align="center">iPhone</TableCell>
               <TableCell align="center">Android</TableCell>
             </TableRow>
           </TableHead>
