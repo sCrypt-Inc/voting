@@ -10,7 +10,8 @@ var artifact = require('../artifacts/src/contracts/voting.json');
 Voting.loadArtifact(artifact);
 
 Scrypt.init({
-  apiKey: 'alpha_test_api_key',
+  // https://docs.scrypt.io/advanced/how-to-integrate-scrypt-service#get-your-api-key
+  apiKey: 'YOUR_API_KEY',
   network: 'testnet'
 })
 

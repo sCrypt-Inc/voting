@@ -23,7 +23,18 @@ $ npm install
 $ npx scrypt-cli compile
 ```
 
- ## Step 4. Deploy contract
+## Step 4. Add your API Key
+
+Use your own API key in file `index.tsx`. If you don't have it, please follow this [guide](https://docs.scrypt.io/advanced/how-to-integrate-scrypt-service#get-your-api-key) to get one.
+
+```ts
+Scrypt.init({
+  apiKey: 'YOUR_API_KEY',  // <---
+  network: 'testnet'
+})
+```
+
+## Step 5. Deploy contract
 
 Before deploying the contract, create a `.env` file and save your private key in the `PRIVATE_KEY` environment variable.
 
@@ -52,7 +63,7 @@ const contract_id = {
 };
 ```
 
-## Step 5. Run the frontend app
+## Step 6. Run the frontend app
 
 ```bash
 $ npm start
