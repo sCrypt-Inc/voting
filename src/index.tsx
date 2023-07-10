@@ -6,7 +6,7 @@ import reportWebVitals from './reportWebVitals';
 import { Scrypt, bsv } from 'scrypt-ts'
 
 import { Voting } from './contracts/voting';
-import artifact  from '../artifacts/src/contracts/voting.json';
+import artifact  from '../artifacts/voting.json';
 Voting.loadArtifact(artifact);
 
 
