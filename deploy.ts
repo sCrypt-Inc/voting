@@ -1,4 +1,5 @@
-import { Name, Voting, N } from './src/contracts/voting'
+import { Name, Voting, N } from 'scrypt-voting/dist/contracts/voting'
+
 import { bsv, TestWallet, DefaultProvider, toByteString, FixedArray } from 'scrypt-ts'
 
 import * as dotenv from 'dotenv'
