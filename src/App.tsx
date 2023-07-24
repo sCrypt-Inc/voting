@@ -23,7 +23,7 @@ import {
   ContractCalledEvent,
   ByteString,
 } from "scrypt-ts";
-import { Voting } from "./contracts/voting";
+import { Voting } from 'scrypt-voting/dist/contracts/voting';
 import Footer from "./Footer";
 
 // `npm run deploycontract` to get deployment transaction id
