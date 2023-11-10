@@ -14,17 +14,24 @@ import {
   Link,
   Typography,
   Box,
-  Divider
+  Divider,
+  Stack,
+  Container,
 } from "@mui/material";
 import {
   Scrypt,
   ScryptProvider,
   SensiletSigner,
+  PandaSigner,
   ContractCalledEvent,
   ByteString,
+  Signer,
+  TAALSigner,
+  bsv,
 } from "scrypt-ts";
 import { Voting } from "./contracts/voting";
 import Footer from "./Footer";
+import Popup from "reactjs-popup";
 
 // `npm run deploycontract` to get deployment transaction id
 const contract_id = {
@@ -38,9 +45,92 @@ function byteString2utf8(b: ByteString) {
   return Buffer.from(b, "hex").toString("utf8");
 }
 
+enum WalletType {
+  PANDA = "panda",
+  TAAL = "taal",
+  Sensilet = "sensilet",
+}
+
+interface ModalProps {
+  onConnect: (walletType: WalletType) => void;
+}
+
+const Modal = (props: ModalProps) => {
+  const [open, setOpen] = useState(false);
+  const closeModal = () => setOpen(false);
+  const { onConnect } = props;
+
+  const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const target = e.target as HTMLButtonElement;
+    onConnect(target.name as WalletType);
+    closeModal();
+  };
+  return (
+    <Box>
+      <Button variant="outlined" onClick={() => setOpen((o) => !o)}>
+        Connect a Wallet
+      </Button>
+      <Popup open={open} closeOnDocumentClick onClose={closeModal}>
+        <Box className="modal">
+          <button className="close" onClick={closeModal}>
+            &times;
+          </button>
+          <Box className="header">
+            <Typography variant="h4">Connect a wallet</Typography>
+          </Box>
+          <Box className="content">
+            <Stack spacing={6} direction="row">
+              <Button variant="contained" name="panda" onClick={onClick}>
+                Panda wallet
+              </Button>
+              <Button variant="contained" name="taal" onClick={onClick}>
+                TAAL wallet
+              </Button>
+              <Button variant="contained" name="sensilet" onClick={onClick}>
+                Sensilet wallet
+              </Button>
+            </Stack>
+          </Box>
+        </Box>
+      </Popup>
+    </Box>
+  );
+};
+
+interface AccountProps {
+  address: string;
+  balance: number;
+  onLogout: () => void;
+}
+
+const Account = (props: AccountProps) => {
+  return (
+    <Container>
+      <Box>
+        Address: <span>{props.address}</span>
+      </Box>
+      <Box>
+        Balance: <span>{props.balance}</span>
+      </Box>
+      <Box>
+        <Button
+          variant="outlined"
+          onClick={() => {
+            props.onLogout();
+          }}
+        >
+          Logout
+        </Button>
+      </Box>
+    </Container>
+  );
+};
+
 function App() {
   const [votingContract, setContract] = useState<Voting>();
-  const signerRef = useRef<SensiletSigner>();
+  const [address, setAddress] = useState<string | null>(null);
+  const [balance, setBalance] = useState<number>(0);
+  const signerRef = useRef<Signer>();
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState<{
     txId: string;
@@ -64,11 +154,6 @@ function App() {
   }
 
   useEffect(() => {
-    const provider = new ScryptProvider();
-    const signer = new SensiletSigner(provider);
-
-    signerRef.current = signer;
-
     fetchContract();
 
     const subscription = Scrypt.contractApi.subscribe(
@@ -100,6 +185,50 @@ function App() {
     setError("");
   };
 
+  const handleConnect = async (walletType: WalletType) => {
+    const provider = new ScryptProvider();
+    if (walletType === WalletType.PANDA) {
+      const signer = new PandaSigner(provider);
+      signerRef.current = signer;
+    } else if (walletType === WalletType.Sensilet) {
+      const signer = new SensiletSigner(provider);
+      signerRef.current = signer;
+    } else if (walletType === WalletType.TAAL) {
+      const signer = new TAALSigner(provider);
+      signerRef.current = signer;
+    } else {
+      alert("ERROR: unknow wallet type");
+      return;
+    }
+
+    const signer = signerRef.current;
+
+    const { isAuthenticated, error } = await signer.requestAuth();
+    if (!isAuthenticated) {
+      alert("ERROR: " + error);
+      console.error("requestAuth failed: ", error);
+      return;
+    }
+
+    const address = await signer.getDefaultAddress();
+
+    if (address.network !== bsv.Networks.testnet) {
+      alert("ERROR: Invalid Network! Pelease switch your wallet to testnet.");
+      return;
+    }
+
+    setAddress(address.toString());
+
+    const balanceRes = await signer.getBalance();
+
+    setBalance(balanceRes.confirmed);
+  };
+
+  const handleLogout = () => {
+    signerRef.current = undefined;
+    setAddress(null);
+  };
+
   const handleSuccessClose = (
     _event: React.SyntheticEvent | Event,
     reason?: string
@@ -115,16 +244,15 @@ function App() {
 
   async function voting(e: any) {
     handleSuccessClose(e);
-    const signer = signerRef.current as SensiletSigner;
+    const signer = signerRef.current;
 
-    if (votingContract && signer) {
-      const { isAuthenticated, error } = await signer.requestAuth();
-      if (!isAuthenticated) {
-        throw new Error(error);
-      }
+    if(!signer) {
+      alert("Please connect a wallet first!");
+      return;
+    }
 
+    if (votingContract) {
       await votingContract.connect(signer);
-
       // create the next instance from the current
       const nextInstance = votingContract.next();
 
@@ -133,6 +261,7 @@ function App() {
       // update state
       nextInstance.increaseVotesReceived(candidateName);
 
+      console.log("increaseVotesReceived");
       // call the method of current instance to apply the updates on chain
       votingContract.methods
         .vote(candidateName, {
@@ -157,6 +286,7 @@ function App() {
       <header className="App-header">
         <h2>What's your favorite phone?</h2>
       </header>
+
       <TableContainer
         component={Paper}
         variant="outlined"
@@ -199,7 +329,7 @@ function App() {
             <TableRow>
               <TableCell align="center">
                 <Box>
-                  <Typography variant={"h1"} >
+                  <Typography variant={"h1"}>
                     {votingContract?.candidates[0].votesReceived.toString()}
                   </Typography>
                   <Button
@@ -213,7 +343,7 @@ function App() {
               </TableCell>
 
               <TableCell align="center">
-              <Divider orientation="vertical" flexItem />
+                <Divider orientation="vertical" flexItem />
                 <Box>
                   <Typography variant={"h1"}>
                     {votingContract?.candidates[1].votesReceived.toString()}
@@ -230,6 +360,18 @@ function App() {
             </TableRow>
           </TableBody>
         </Table>
+
+        <Box marginTop={6}>
+          {address !== null ? (
+            <Account
+              onLogout={handleLogout}
+              address={address}
+              balance={balance}
+            ></Account>
+          ) : (
+            <Modal onConnect={handleConnect}></Modal>
+          )}
+        </Box>
       </TableContainer>
       <Footer />
       <Snackbar
