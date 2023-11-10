@@ -83,9 +83,6 @@ const Modal = (props: ModalProps) => {
               <Button variant="contained" name="panda" onClick={onClick}>
                 Panda wallet
               </Button>
-              <Button variant="contained" name="taal" onClick={onClick}>
-                TAAL wallet
-              </Button>
               <Button variant="contained" name="sensilet" onClick={onClick}>
                 Sensilet wallet
               </Button>
@@ -261,7 +258,6 @@ function App() {
       // update state
       nextInstance.increaseVotesReceived(candidateName);
 
-      console.log("increaseVotesReceived");
       // call the method of current instance to apply the updates on chain
       votingContract.methods
         .vote(candidateName, {
