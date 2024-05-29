@@ -36,7 +36,7 @@ import Popup from "reactjs-popup";
 // `npm run deploycontract` to get deployment transaction id
 const contract_id = {
   /** The deployment transaction id */
-  txId: "5f88721569a223b0d08795328fe45a60723d6a4e5522df743998634b68b9b617",
+  txId: "98cdfaaeb38cf25abc6260cb09f0ae8f52fa942a02a79a999059c88844b1d2a5",
   /** The output index */
   outputIndex: 0,
 };
@@ -46,7 +46,7 @@ function byteString2utf8(b: ByteString) {
 }
 
 enum WalletType {
-  PANDA = "panda",
+  YOURS = "yours",
   TAAL = "taal",
   Sensilet = "sensilet",
 }
@@ -80,8 +80,8 @@ const Modal = (props: ModalProps) => {
           </Box>
           <Box className="content">
             <Stack spacing={6} direction="row">
-              <Button variant="contained" name="panda" onClick={onClick}>
-                Panda wallet
+              <Button variant="contained" name="yours" onClick={onClick}>
+                Yours wallet
               </Button>
               <Button variant="contained" name="sensilet" onClick={onClick}>
                 Sensilet wallet
@@ -184,7 +184,7 @@ function App() {
 
   const handleConnect = async (walletType: WalletType) => {
     const provider = new ScryptProvider();
-    if (walletType === WalletType.PANDA) {
+    if (walletType === WalletType.YOURS) {
       const signer = new PandaSigner(provider);
       signerRef.current = signer;
     } else if (walletType === WalletType.Sensilet) {
@@ -206,6 +206,8 @@ function App() {
       console.error("requestAuth failed: ", error);
       return;
     }
+    
+    await signer.connect()
 
     const address = await signer.getDefaultAddress();
 
